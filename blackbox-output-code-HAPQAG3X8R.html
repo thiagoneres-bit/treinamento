@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Formulário de Treinamento - Integração com Trello</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    .hero-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  <header class="hero-bg text-white py-6 px-4 fade-in">
+    <div class="container mx-auto text-center">
+      <h1 class="text-4xl font-bold mb-2">Sistema de Treinamento de Funcionários</h1>
+      <p class="text-lg">Preencha o formulário para registrar um novo treinamento e enviar automaticamente para o Trello.</p>
+    </div>
+  </header>
+
+  <section class="flex justify-center py-8">
+    <div class="hero-image max-w-xl w-full">
+      <img
+        src="https://placehold.co/600x200/667eea/ffffff?text=GRUPO+ETG"
+        alt="Logotipo do GRUPO ETG em fundo azul degradê com texto branco"
+        class="w-full h-auto rounded-lg shadow-lg"
+      />
+    </div>
+  </section>
+
+  <section class="container mx-auto px-4 py-8 text-center">
+    <h2 class="text-2xl font-semibold mb-4">Como Usar:</h2>
+    <div class="bg-white p-6 rounded-lg shadow-md">
+      <p class="mb-4">Preencha os dados do treinamento abaixo e envie. O card será criado automaticamente no Trello.</p>
+    </div>
+  </section>
+
+  <section class="container mx-auto px-4 pb-8">
+    <form id="trelloForm" class="bg-white p-8 rounded-lg shadow-md fade-in">
+      <h3 class="text-xl font-bold mb-4">Dados do Funcionário</h3>
+      <div class="space-y-4">
+        <input
+          type="text"
+          id="nome"
+          placeholder="Nome do Funcionário"
+          class="border p-3 rounded w-full"
+          required
+        />
+        <input
+          type="text"
+          id="cargo"
+          placeholder="Cargo"
+          class="border p-3 rounded w-full"
+          required
+        />
+        <input
+          type="text"
+          id="loja"
+          placeholder="Loja"
+          class="border p-3 rounded w-full"
+          required
+        />
+        <input
+          type="text"
+          id="cpf"
+          placeholder="CPF"
+          class="border p-3 rounded w-full"
+        />
+        <div>
+          <label for="dataAdmissao" class="block text-left mb-1 font-medium text-gray-700">Data de Admissão do Funcionário</label>
+          <input
+            type="date"
+            id="dataAdmissao"
+            class="border p-3 rounded w-full"
+            required
+          />
+        </div>
+      </div>
+
+      <h3 class="text-xl font-bold mt-8 mb-4">Dados do Treinamento</h3>
+      <div class="space-y-4">
+        <textarea
+          id="treinamento"
+          placeholder="Descrição do Treinamento"
+          class="border p-3 rounded w-full h-24"
+          required
+        ></textarea>
+        <select id="status" class="border p-3 rounded w-full" required>
+          <option value="">Selecione Status</option>
+          <option value="A Fazer">A Fazer</option>
+          <option value="Em Progresso">Em Progresso</option>
+          <option value="Concluído">Concluído</option>
+        </select>
+        <textarea
+          id="observacoes"
+          placeholder="Observações"
+          class="border p-3 rounded w-full h-24"
+        ></textarea>
+      </div>
+
+      <button
+        type="submit"
+        class="bg-blue-500 text-white py-3 px-6 rounded mt-6 hover:bg-blue-600 transition duration-300 w-full"
+      >
+        Enviar para Trello
+      </button>
+    </form>
+
+    <div id="message" class="mt-4 text-center hidden"></div>
+  </section>
+
+  <footer class="hero-bg text-white py-4 mt-auto">
+    <div class="container mx-auto text-center">
+      <p>© 2023 Sistema de Treinamento. Criado com ❤️ para facilitar treinamentos.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Configurações do Trello preenchidas com seus dados
+    const apiKey = 'f9079c8e14f1e29d157ad8ecc7db5dc7';
+    const token = 'ATTA15ec6fd6cd8b7c3475e8f5d639f5e1e8415a2eba3f1cf2773b80e963b2b7fe03E4B820F3';
+    const listId = '68bf1f0793afc673789dbbac';
+
+    document.getElementById('trelloForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const nome = document.getElementById('nome').value;
+      const cargo = document.getElementById('cargo').value;
+      const loja = document.getElementById('loja').value;
+      const cpf = document.getElementById('cpf').value;
+      const dataAdmissao = document.getElementById('dataAdmissao').value;
+
+      const treinamento = document.getElementById('treinamento').value;
+      const status = document.getElementById('status').value;
+      const observacoes = document.getElementById('observacoes').value;
+
+      const desc = `**Nome:** ${nome}
+**Cargo:** ${cargo}
+**Loja:** ${loja}
+**CPF:** ${cpf}
+**Data de Admissão do Funcionário:** ${dataAdmissao}
+
+**Treinamento:** ${treinamento}
+**Status:** ${status}
+**Observações:** ${observacoes}`;
+
+      const url = `https://api.trello.com/1/cards?key=${apiKey}&token=${token}&idList=${listId}&name=${encodeURIComponent(
+        nome + ' - ' + treinamento
+      )}&desc=${encodeURIComponent(desc)}`;
+
+      try {
+        const response = await fetch(url, { method: 'POST' });
+        const messageDiv = document.getElementById('message');
+        if (response.ok) {
+          messageDiv.innerHTML = '<p class="text-green-500">Card criado com sucesso no Trello!</p>';
+          messageDiv.classList.remove('hidden');
+          this.reset();
+        } else {
+          messageDiv.innerHTML =
+            '<p class="text-red-500">Erro ao criar card. Verifique os dados e tente novamente.</p>';
+          messageDiv.classList.remove('hidden');
+        }
+      } catch (error) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerHTML = '<p class="text-red-500">Erro de conexão: ' + error.message + '</p>';
+        messageDiv.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
